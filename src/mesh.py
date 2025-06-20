@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional, Union, List
 import numpy as np
 
@@ -10,22 +10,32 @@ class Mesh:
        in form of [[x_1, y_1, z_1], [x_2, y_2, z_2], ...]
     t: topology, the connectivity of the elements/cells,
        in form of [[n_1, n_2, n_3, n_4, ...], [n_1, n_2, n_3, n_4, ...], ...]
+
+       In 2D cell, vertices should match the order
+         3---2
+         |   |
+         0---1
+
+        In 3D cell, order of vertices should match the numbering
+           7---6
+          /   /|
+         4---5 2
+         |   |/
+         0---1
+         
     element: the meshio type of the element
     """
-    p: np.ndarray = []
-    t: np.ndarray = []
-    element: str = ''
-    facet = None
+    p: List[float] = field(default_factory=list)
+    t: List[float] = field(default_factory=list)
+    element: Optional[str] = None
+    facet: Optional[List[int]] = None
+    dim: int = 0
     
+    def __post_init__(self):
+        self.dim = len(self.p[0])
 
 
-    @property
-    def p(self):
-        return self.p
-    
-    @property
-    def t(self):
-        return self.t
+
     
     def save(self, 
              file,
@@ -39,3 +49,6 @@ class Mesh:
             meshio.write(file, tmp)
         except ImportError:
             print('meshio is not available, cannot save mesh')
+
+if __name__ == '__main__':
+    mesh = Mesh()
