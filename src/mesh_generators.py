@@ -53,11 +53,9 @@ def gen_block_mesh(
     t[:, 6] = point_order[1:, 1:, 1:].flatten()
     t[:, 7] = point_order[1:, 1:, 0:-1].flatten()
     element = 'hexahedron'
+    
     return Mesh(p3d.tolist(), t.tolist(), element)
 
-
-
-    return Mesh(p.tolist(), t.tolist(), element, facet)
-def gen_cylinder_mesh(): pass
-def gen_spherical_mesh(): pass
-def gen_torus_mesh(): pass
+def gen_cylinder_mesh(): return
+def gen_spherical_mesh(): return
+def gen_torus_mesh(): return
