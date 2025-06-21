@@ -5,23 +5,28 @@ import numpy as np
 @dataclass
 class Mesh:
     """
-    A mesh definition for manipulating FEA meshes
+    A mesh definition for manipulating FEA meshes.
+
     p: points, the locations of the element nodes, 
-       in form of [[x_1, y_1, z_1], [x_2, y_2, z_2], ...]
+    in form of [[x_1, y_1, z_1], [x_2, y_2, z_2], ...]
+
     t: topology, the connectivity of the elements/cells,
-       in form of [[n_1, n_2, n_3, n_4, ...], [n_1, n_2, n_3, n_4, ...], ...]
+    in form of [[n_1, n_2, n_3, n_4, ...], [n_1, n_2, n_3, n_4, ...], ...]:
 
-       In 2D cell, vertices should match the order
-         3---2
-         |   |
-         0---1
+    
+        In 2D cell, vertices should match the order:
 
-        In 3D cell, order of vertices should match the numbering
-           7---6
-          /   /|
-         4---5 2
-         |   |/
-         0---1
+          3---2
+          |   |
+          0---1
+
+        In 3D cell, order of vertices should match the numbering:
+
+            7---6
+           /   /|
+          4---5 2
+          |   |/
+          0---1
          
     element: the meshio type of the element
     """
@@ -35,7 +40,8 @@ class Mesh:
         self.dim = len(self.p[0])
 
 
-
+    def facet_from_points(self, points):
+        pass
     
     def save(self, 
              file,
