@@ -25,7 +25,9 @@ mesh_2d = Mesh([[0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
                          [9, 6], [6, 3], [3, 0]])
 
 mesh_3d = gen_block_mesh([[0, 1], [0, 2], [0, 0.5]], (3, 3, 3))
-idx = filter(lambda x: x[1][2] <= 0, enumerate(mesh_3d.p))
-indices = [index for index, value in idx]
-# print(indices)
-print(mesh_3d.facet_from_nodes(indices))
+# idx = filter(lambda x: x[1][2] <= 0, enumerate(mesh_3d.p))
+# indices = [index for index, value in idx]
+indices = mesh_3d.nodes_satisfy(lambda u: u[2] <= 0)
+facet = mesh_3d.facet_from_nodes(indices)
+from mesh_helpers import face_to_meshgrid
+print(face_to_meshgrid(mesh_3d, facet))

@@ -123,6 +123,15 @@ class Mesh:
             [cell[1], cell[2], cell[6], cell[5]]   # Right (1-2-6-5)
         ]
         return faces
+    
+    def nodes_satisfy(self, expression) -> List[int]:
+        '''
+        return node id where the expression condition is satisfied
+        '''
+
+        iter = filter(lambda x: expression(x[1]), enumerate(self.p))
+        indices = [index for index, value in iter]
+        return indices
 
     def save(self, 
              file,
