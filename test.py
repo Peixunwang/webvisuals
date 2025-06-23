@@ -5,6 +5,7 @@ import numpy as np
 # mesh = gen_block_mesh([[0, 1], [0, 2]], [3, 4])
 # print(mesh)
 from src.mesh import Mesh
+from src.mesh_generators import gen_block_mesh
 
 mesh_2d = Mesh([[0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
                         [0.0, 0.5], [0.5, 0.5], [1.0, 0.5],
@@ -23,4 +24,8 @@ mesh_2d = Mesh([[0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
                          [11, 10], [10, 9], 
                          [9, 6], [6, 3], [3, 0]])
 
-print(mesh_2d)
+mesh_3d = gen_block_mesh([[0, 1], [0, 2], [0, 0.5]], (3, 3, 3))
+idx = filter(lambda x: x[1][2] <= 0, enumerate(mesh_3d.p))
+indices = [index for index, value in idx]
+# print(indices)
+print(mesh_3d.facet_from_nodes(indices))

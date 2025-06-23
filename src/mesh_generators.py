@@ -53,7 +53,7 @@ def gen_block_mesh(
     t[:, 6] = point_order[1:, 1:, 1:].flatten()
     t[:, 7] = point_order[1:, 1:, 0:-1].flatten()
     element = 'hexahedron'
-    
+
     return Mesh(p3d.tolist(), t.tolist(), element)
 
 def gen_cylinder_mesh(): return
