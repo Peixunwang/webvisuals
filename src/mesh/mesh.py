@@ -134,11 +134,33 @@ class Mesh:
         indices = [index for index, value in iter]
         return indices
     
-    def translate(self, direction):
-        print('translate mesh (place holder)')
+    def translate(self, direction: Union[List[float], np.ndarray]):
+        """
+        Translates the mesh by a given vector.
+
+        Args:
+            direction (Union[List[float], np.ndarray]): The translation vector,
+                e.g., [dx, dy, dz].
+        """
+        if not self.p:
+            return  # Nothing to translate
+
+        p_arr = np.array(self.p, dtype=float)
+        direction_arr = np.array(direction, dtype=float)
+
+        if p_arr.shape[1] != direction_arr.shape[0]:
+            raise ValueError(
+                f"Point dimension {p_arr.shape[1]} does not match "
+                f"direction vector dimension {direction_arr.shape[0]}."
+            )
+
+        self.p = (p_arr + direction_arr).tolist()
 
     def rotate(self, direction):
         print('rotate mesh (place holder)')
+
+    def remove_point(self, node):
+        print('remove_point (place holder)')
 
     def save(self, 
              file,
