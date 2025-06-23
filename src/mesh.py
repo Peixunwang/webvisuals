@@ -68,7 +68,12 @@ class Mesh:
         return new_t
 
     def facet_from_points(self, points):
-        pass
+        if self.dim == 3:
+            quad_from_points(points)
+        
+
+    def quad_from_points(self, points):
+        return quad_t
     
     def save(self, 
              file,
