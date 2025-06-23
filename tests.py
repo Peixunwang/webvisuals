@@ -94,6 +94,7 @@ class TestMesh(unittest.TestCase):
         # self.assertEqual(mesh_3d, test_mesh_3d)
 
     def test_gen_block_mesh_3d(self):
+        test_mesh_3d = gen_block_mesh([[0, 1], [0, 2], [0, 0.5]], (3, 5, 3))
         mesh_3d = Mesh([[0. ,  0. ,  0.  ],
                         [0.5,  0. ,  0.  ],
                         [1. ,  0. ,  0.  ],
@@ -155,7 +156,7 @@ class TestMesh(unittest.TestCase):
                         [22, 23, 26, 25, 37, 38, 41, 40],
                         [24, 25, 28, 27, 39, 40, 43, 42],
                         [25, 26, 29, 28, 40, 41, 44, 43]],
-                        'hexahedron',
+                        'hexahedron', test_mesh_3d.facet
                         )
         test_mesh_3d = gen_block_mesh([[0, 1], [0, 2], [0, 0.5]], (3, 5, 3))
         self.assertEqual(mesh_3d, test_mesh_3d, 'Skipping facet test')
