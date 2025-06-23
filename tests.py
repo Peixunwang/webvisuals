@@ -158,7 +158,7 @@ class TestMesh(unittest.TestCase):
                         'hexahedron',
                         )
         test_mesh_3d = gen_block_mesh([[0, 1], [0, 2], [0, 0.5]], (3, 5, 3))
-        self.assertEqual(mesh_3d, test_mesh_3d)
+        self.assertEqual(mesh_3d, test_mesh_3d, 'Skipping facet test')
 
 if __name__ == '__main__':
     unittest.main()
