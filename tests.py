@@ -1,6 +1,7 @@
 import unittest
 from src.mesh_generators import gen_block_mesh
 from src.mesh import Mesh
+import numpy as np
 
 
 class TestMesh(unittest.TestCase):
@@ -159,6 +160,16 @@ class TestMesh(unittest.TestCase):
                         'hexahedron', test_mesh_3d.facet
                         )
         self.assertEqual(mesh_3d, test_mesh_3d, 'Skipping facet test')
+
+    def test_face_to_meshgrid(self):
+        from src.mesh_helpers import face_to_meshgrid
+        X, Y = np.meshgrid(np.linspace(0, 1, 3), np.linspace(0, 2, 5))
+        Z = np.zeros_like(X)
+        mesh_3d = gen_block_mesh([[0, 1], [0, 2], [0, 0.5]], (3, 5, 3))
+        indices = mesh_3d.nodes_satisfy(lambda u: u[2] <= 0)
+        facet = mesh_3d.facet_from_nodes(indices)
+        test_grid = face_to_meshgrid(mesh_3d, facet)
+        self.assertEqual([X, Y, Z], test_grid)
 
 if __name__ == '__main__':
     unittest.main()
