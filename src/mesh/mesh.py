@@ -133,6 +133,12 @@ class Mesh:
         iter = filter(lambda x: expression(x[1]), enumerate(self.p))
         indices = [index for index, value in iter]
         return indices
+    
+    def translate(self, direction):
+        print('translate mesh (place holder)')
+
+    def rotate(self, direction):
+        print('rotate mesh (place holder)')
 
     def save(self, 
              file,
