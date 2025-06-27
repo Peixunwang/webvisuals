@@ -1,1 +1,1 @@
-from .src.mesh import Mesh
+from .src.mesh.mesh import Mesh

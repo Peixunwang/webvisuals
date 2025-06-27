@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Tuple, Union
-from .mesh import Mesh
+from .mesh import Mesh, Face, Edge
 
 def gen_block_mesh(
         dims: List[List[float]], 
@@ -53,8 +53,17 @@ def gen_block_mesh(
     t[:, 6] = point_order[1:, 1:, 1:].flatten()
     t[:, 7] = point_order[1:, 1:, 0:-1].flatten()
     element = 'hexahedron'
+    mesh = Mesh(p3d.tolist(), t.tolist(), element)
+    boundaries = {}
+    boundaries.update({'left' : mesh.nodes_satisfy(lambda u: u[0] <= dims[0][0])})
+    boundaries.update({'right' : mesh.nodes_satisfy(lambda u: u[0] >= dims[0][1])})
+    boundaries.update({'front' : mesh.nodes_satisfy(lambda u: u[1] <= dims[1][0])})
+    boundaries.update({'back' : mesh.nodes_satisfy(lambda u: u[1] >= dims[1][1])})
+    boundaries.update({'bottom' : mesh.nodes_satisfy(lambda u: u[2] <= dims[2][0])})
+    boundaries.update({'top' : mesh.nodes_satisfy(lambda u: u[2] >= dims[2][1])})
+    mesh.boundaries = boundaries
 
-    return Mesh(p3d.tolist(), t.tolist(), element)
+    return mesh
 
 def gen_cylinder_mesh(): return
 def gen_spherical_mesh(): return

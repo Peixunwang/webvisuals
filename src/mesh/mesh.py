@@ -16,7 +16,7 @@ class Mesh:
     element: the meshio type of the element
 
     Cell structure:
-    
+
         In 2D cell, vertices should match the order:
 
           3---2
@@ -37,7 +37,8 @@ class Mesh:
     element: Optional[str] = None
     facet: Optional[List[int]] = None
     dim: int = 0
-    
+    boundaries: Optional[Dict[str, List]] = None
+
     def __post_init__(self):
         self.dim = len(self.p[0])
 
@@ -50,7 +51,7 @@ class Mesh:
     def plot_mesh2d(self):
         print("Plotting 2D mesh (placeholder)")
         return
-    
+
     def plot_mesh3d(self):
         print("Plotting 3D mesh (placeholder)")
         return
@@ -69,14 +70,11 @@ class Mesh:
             new_t.append(reordered_list)
         return new_t
 
-
-
-    def facet_from_nodes(self, nodes):
+    def facet_from_nodes(self, nodes) -> List[List[int]]:
         if self.dim == 2:
             return
         if self.dim == 3:
             return self.quad_from_nodes(nodes)
-
 
     def quad_from_nodes(self, nodes: List[int]) -> List[List[int]]:
         """
@@ -102,7 +100,7 @@ class Mesh:
                 if set(face).issubset(nodes):
                     quad_t.append(face)
         return quad_t
-    
+
     def get_hexahedron_faces(self, cell: List[int]) -> List[List[int]]:
         """
         Returns the indices of the nodes for each of the 6 faces of a hexahedron,
@@ -113,17 +111,20 @@ class Mesh:
               4---5 2
               |   |/
               0---1
+
+        note: the actual cell connectivity ordering is:
+              [0, 1, 3, 2, 4, 5, 7, 6]
         """
         faces = [
-            [cell[0], cell[1], cell[2], cell[3]],  # Bottom (0-1-2-3)
+            [cell[3], cell[2], cell[1], cell[0]],  # Bottom (3-2-1-0)
             [cell[4], cell[5], cell[6], cell[7]],  # Top (4-5-6-7)
             [cell[0], cell[1], cell[5], cell[4]],  # Front (0-1-5-4)
-            [cell[3], cell[2], cell[6], cell[7]],  # Back (3-2-6-7)
-            [cell[0], cell[3], cell[7], cell[4]],  # Left (0-3-7-4)
+            [cell[7], cell[6], cell[2], cell[3]],  # Back (7-6-2-3)
+            [cell[3], cell[0], cell[4], cell[7]],  # Left (3-0-4-7)
             [cell[1], cell[2], cell[6], cell[5]]   # Right (1-2-6-5)
         ]
         return faces
-    
+
     def nodes_satisfy(self, expression) -> List[int]:
         '''
         return node id where the expression condition is satisfied
@@ -145,6 +146,27 @@ class Mesh:
             meshio.write(file, tmp)
         except ImportError:
             print('meshio is not available, not saving mesh')
+
+class continuous_surface:
+    def __init__(self, surf):
+        self.surf = surf
+
+    def is_periodic(self):
+        print('place holder')
+
+@dataclass
+class Face:
+    '''
+        The four vertices of a face
+    '''
+    nodes = []
+
+@dataclass
+class Edge:
+    '''
+        The two ends of an edge
+    '''
+    nodes = []
 
 if __name__ == '__main__':
     mesh = Mesh()
