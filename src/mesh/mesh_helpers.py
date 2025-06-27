@@ -1,6 +1,7 @@
 from .mesh import Mesh, Face, Edge
 from typing import List
 import numpy as np
+import itertools
 
 def face_to_meshgrid(mesh: Mesh, faces: List[Face]) -> np.ndarray:
     faces_graph = get_faces_graph(faces)
@@ -118,7 +119,12 @@ def get_faces_graph(faces: List[Face]) -> List:
         for that_face in faces:
             if that_face == this_face: 
                 continue
+
             if this_edge.issubset(set(that_face)):
+                for f in checked_faces:
+                    if f == that_face:
+                        return
+                checked_faces.append(that_face)
                 that_edge = set(that_face).difference(this_edge)
                 fix_orient(this_face, that_face)
                 return that_edge, that_face
@@ -144,9 +150,12 @@ def get_faces_graph(faces: List[Face]) -> List:
         return []
 
     fix_orientation = True
-    left_edge, left_face = last_face({faces[0][3], faces[0][0]}, faces[0])
-    bot_left_edge, bot_left_face = last_face({left_face[0], left_face[1]}, left_face)
     faces_graph = []
+    checked_faces = [faces[0]]
+    left_edge, left_face = last_face({faces[0][3], faces[0][0]}, faces[0])
+    checked_faces = [left_face]
+    bot_left_edge, bot_left_face = last_face({left_face[0], left_face[1]}, left_face)
+    checked_faces = [bot_left_face]
     faces_graph.append(make_row(bot_left_face))
     test = next_face({bot_left_face[2], bot_left_face[3]}, bot_left_face)
     while test:
