@@ -79,14 +79,14 @@ class Mesh:
     def quad_from_nodes(self, nodes: List[int]) -> List[List[int]]:
         """
         Identifies quadrilateral faces (topology indices) within the mesh that
-        are defined by the given 'query_points'.
+        are defined by the given 'query_points (nodes)'.
 
         Assumes 'query_points' are the physical coordinates of the four corners
         of a quadrilateral face, the order does not strictly matter for matching
         since we check permutations.
 
         Args:
-            query_points: A list of 4 points, each being a list of [x, y, z] coordinates.
+            nodes: A list of 4 points, each being a list of [x, y, z] coordinates.
 
         Returns:
             A list of lists. Each inner list represents the global node indices
