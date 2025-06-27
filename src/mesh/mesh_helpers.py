@@ -16,20 +16,26 @@ def face_to_meshgrid(mesh: Mesh, faces: List[Face]) -> np.ndarray:
         for x, face in enumerate(row):
             X[y][x] = points[face[0]][0]
             Y[y][x] = points[face[0]][1]
-            Z[y][x] = points[face[0]][2]
+            if len(points[0]) == 3:
+                Z[y][x] = points[face[0]][2]
 
             X[y][x+1] = points[face[1]][0]
             Y[y][x+1] = points[face[1]][1]
-            Z[y][x+1] = points[face[1]][2]
+            if len(points[0]) == 3:
+                Z[y][x+1] = points[face[1]][2]
 
             X[y+1][x+1] = points[face[2]][0]
             Y[y+1][x+1] = points[face[2]][1]
-            Z[y+1][x+1] = points[face[2]][2]
+            if len(points[0]) == 3:
+                Z[y+1][x+1] = points[face[2]][2]
 
             X[y+1][x] = points[face[3]][0]
             Y[y+1][x] = points[face[3]][1]
-            Z[y+1][x] = points[face[3]][2]
-    return X, Y, Z
+            if len(points[0]) == 3:
+                Z[y+1][x] = points[face[3]][2]
+    if len(points[0]) == 3:
+        return X, Y, Z
+    return X, Y
 
 def get_edges_graph(cells: List) -> List: print('get_edges_graph place holder')
 

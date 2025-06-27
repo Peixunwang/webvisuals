@@ -65,6 +65,89 @@ def gen_block_mesh(
 
     return mesh
 
+def gen_circular_mesh(nnode, r): 
+    import math
+    f = 0.5; # Fraction (with respect to outer radius) where central square appears
+    X, Y = np.meshgrid(np.linspace(-r, r, nnode), np.linspace(-r, r, nnode))
+    # scale and rotate the meshgrid so that X[0, 0], Y[0, 0] correspond to r=r, theta=0
+    k = 1 / np.sqrt(2)
+    X *= k
+    Y *= k
+    phi = 3 * np.pi / 4
+    rot_matix = np.array([[np.cos(phi), -np.sin(phi)], 
+                          [np.sin(phi), +np.cos(phi)]])
+    X, Y = np.einsum('ji, mni -> jmn', rot_matix, np.dstack([X, Y]))
+    q_1 = int(nnode * (f / 2))
+    q_2 = nnode - q_1
+    for i in range(int(nnode / 2)):
+        node_r = X[i, i]
+        for j in range(nnode - 2*i):
+            j_inx = j + i
+            x = X[i, j_inx]
+            y = Y[i, j_inx]
+            theta = math.atan2(y, x)
+            x_l = (node_r / (math.sin(theta) + math.cos(theta))) * math.cos(theta)
+            y_l = (node_r / (math.sin(theta) + math.cos(theta))) * math.sin(theta)
+            x = (node_r * math.cos(theta) * (1 + node_r / r) + x_l * (1 - node_r / r)) / 2
+            y = (node_r * math.sin(theta) * (1 + node_r / r) + y_l * (1 - node_r / r)) / 2
+            print((node_r - 0.5 * r), r)
+            X[i, j_inx] = x
+            Y[i, j_inx] = y
+            x = X[j_inx, i]
+            y = Y[j_inx, i]
+            theta = math.atan2(y, x)
+            x_l = (-node_r / (math.sin(theta) - math.cos(theta))) * math.cos(theta)
+            y_l = (-node_r / (math.sin(theta) - math.cos(theta))) * math.sin(theta)
+            x = (node_r * math.cos(theta) * (1 + node_r / r) + x_l * (1 - node_r / r)) / 2
+            y = (node_r * math.sin(theta) * (1 + node_r / r) + y_l * (1 - node_r / r)) / 2
+            X[j_inx, i] = x
+            Y[j_inx, i] = y
+        for j in range(nnode - 2*i):
+            j_inx = j + i
+            x = X[-i - 1, j_inx]
+            y = Y[-i - 1, j_inx]
+            theta = math.atan2(y, x)
+            x_l = (-node_r / (math.sin(theta) + math.cos(theta))) * math.cos(theta)
+            y_l = (-node_r / (math.sin(theta) + math.cos(theta))) * math.sin(theta)
+            x = (node_r * math.cos(theta) * (1 + node_r / r) + x_l * (1 - node_r / r)) / 2
+            y = (node_r * math.sin(theta) * (1 + node_r / r) + y_l * (1 - node_r / r)) / 2
+            X[-i - 1, j_inx] = x
+            Y[-i - 1, j_inx] = y
+            x = X[j_inx, -i - 1]
+            y = Y[j_inx, -i - 1]
+            theta = math.atan2(y, x)
+            x_l = (node_r / (math.sin(theta) - math.cos(theta))) * math.cos(theta)
+            y_l = (node_r / (math.sin(theta) - math.cos(theta))) * math.sin(theta)
+            x = (node_r * math.cos(theta) * (1 + node_r / r) + x_l * (1 - node_r / r)) / 2
+            y = (node_r * math.sin(theta) * (1 + node_r / r) + y_l * (1 - node_r / r)) / 2
+            X[j_inx, -i - 1] = x
+            Y[j_inx, -i - 1] = y
+    rot_matix = np.array([[+np.cos(phi), np.sin(phi)], 
+                          [-np.sin(phi), np.cos(phi)]])
+    X, Y = np.einsum('ji, mni -> jmn', rot_matix, np.dstack([X, Y]))
+    p = np.vstack((X.flatten(), Y.flatten())).T
+    shape = [nnode, nnode]
+    nt = (shape[0] - 1) * (shape[1] - 1)                    # number of cells
+
+    t = np.zeros([nt, 4], dtype=int)
+    point_order = np.arange(shape[0] * shape[1]).reshape((shape[1], shape[0]))
+    t[:, 0] = point_order[0:-1, 0:-1].flatten()
+    t[:, 1] = point_order[0:-1, 1:].flatten()
+    t[:, 2] = point_order[1:, 1:].flatten()
+    t[:, 3] = point_order[1:, 0:-1].flatten()
+    element = 'quad'
+    facet = []
+    facet_points = []
+    facet_points.append(point_order[0, :].tolist())
+    facet_points.append(point_order[:, -1].tolist())
+    facet_points.append(list(reversed(point_order[-1, :].tolist())))
+    facet_points.append(list(reversed(point_order[:, 0].tolist())))
+    for l in facet_points:
+        facet.extend([[l[i], l[i+1]] for i in range(len(l)-1)])
+    return Mesh(p.tolist(), t.tolist(), element, facet)
+
 def gen_cylinder_mesh(): return
+
 def gen_spherical_mesh(): return
+
 def gen_torus_mesh(): return
