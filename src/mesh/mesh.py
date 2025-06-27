@@ -33,7 +33,7 @@ class Mesh:
 
     """
     p: List[float] = field(default_factory=list)
-    t: List[float] = field(default_factory=list)
+    t: List[int] = field(default_factory=list)
     element: Optional[str] = None
     facet: Optional[List[int]] = None
     dim: int = 0

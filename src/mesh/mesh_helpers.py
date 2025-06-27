@@ -31,13 +31,6 @@ def face_to_meshgrid(mesh: Mesh, faces: List[Face]) -> np.ndarray:
             Z[y+1][x] = points[face[3]][2]
     return X, Y, Z
 
-def get_nodes_graph(elem: List) -> List:
-    '''
-        elem is one of [edges, faces, cells]
-    '''
-
-    print('get_nodes_graph place holder')
-
 def get_edges_graph(cells: List) -> List: print('get_edges_graph place holder')
 
 def get_faces_graph(faces: List[Face]) -> List:
