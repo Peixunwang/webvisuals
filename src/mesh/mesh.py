@@ -100,6 +100,16 @@ class Mesh:
                 if set(face).issubset(nodes):
                     quad_t.append(face)
         return quad_t
+    
+    def meshgrid_from_faces(self, *keys):
+        from .mesh_helpers import face_to_meshgrid
+        facets = []
+        for key in keys:
+            indices = self.boundaries[key]
+            facet = self.facet_from_nodes(indices)
+            facets.extend(facet)
+        X, Y, Z = face_to_meshgrid(self, facets)
+        return X, Y, Z
 
     def get_hexahedron_faces(self, cell: List[int]) -> List[List[int]]:
         """
