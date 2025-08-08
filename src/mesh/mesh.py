@@ -38,6 +38,7 @@ class Mesh:
     facet: Optional[List[int]] = None
     dim: int = 0
     boundaries: Optional[Dict[str, List]] = None
+    cell_data: Dict[str, List] = None
 
     def __post_init__(self):
         self.dim = len(self.p[0])
