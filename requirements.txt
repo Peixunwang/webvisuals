@@ -3,3 +3,5 @@ numpy
 meshio
 pandas
 dash
+matplotlib
+mpl_interactions
