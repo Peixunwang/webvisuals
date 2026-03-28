@@ -35,25 +35,41 @@ def gen_block_mesh(
         dims: [[min(x), max(x)], [min(y), max(y)], [min(z), max(z)]]
         shape: number of nodes in [x, y, z]
     '''
+    dim = len(shape)
+    t = gen_tensor_topology(shape)
     x = np.linspace(*dims[0], shape[0])
     y = np.linspace(*dims[1], shape[1])
     X, Y = np.meshgrid(x, y)
     p = np.vstack((X.flatten(), Y.flatten())).T
-    t = gen_tensor_topology(shape)
-    element = 'quad'
-    nt = (shape[0] - 1) * (shape[1] - 1)                    # number of cells
-    point_order = np.arange(shape[0] * shape[1]).reshape((shape[1], shape[0]))
-    facet = []
-    facet_points = []
-    facet_points.append(point_order[0, :].tolist())
-    facet_points.append(point_order[:, -1].tolist())
-    facet_points.append(list(reversed(point_order[-1, :].tolist())))
-    facet_points.append(list(reversed(point_order[:, 0].tolist())))
-    for l in facet_points:
-        facet.extend([[l[i], l[i+1]] for i in range(len(l)-1)])
+    if dim ==2:
+        element = 'quad'
 
-    if len(shape) == 2:
-        return Mesh(p.tolist(), t.tolist(), element, facet)
+        # Instantiate mesh
+        mesh = Mesh(p.tolist(), t.tolist(), element)
+        boundaries = {
+            'left':   mesh.nodes_satisfy(lambda u: u[0] <= dims[0][0]),
+            'right':  mesh.nodes_satisfy(lambda u: u[0] >= dims[0][1]),
+            'bottom': mesh.nodes_satisfy(lambda u: u[1] <= dims[1][0]),
+            'top':    mesh.nodes_satisfy(lambda u: u[1] >= dims[1][1])
+        }
+        mesh.boundaries = boundaries
+        return mesh
+
+
+    # keep these legacy code
+    # nt = (shape[0] - 1) * (shape[1] - 1)                    # number of cells
+    # point_order = np.arange(shape[0] * shape[1]).reshape((shape[1], shape[0]))
+    # facet = []
+    # facet_points = []
+    # facet_points.append(point_order[0, :].tolist())
+    # facet_points.append(point_order[:, -1].tolist())
+    # facet_points.append(list(reversed(point_order[-1, :].tolist())))
+    # facet_points.append(list(reversed(point_order[:, 0].tolist())))
+    # for l in facet_points:
+    #     facet.extend([[l[i], l[i+1]] for i in range(len(l)-1)])
+
+    # if len(shape) == 2:
+    #     return Mesh(p.tolist(), t.tolist(), element, facet)
     # generate 3D mesh
 
     z = np.linspace(*dims[2], shape[2])

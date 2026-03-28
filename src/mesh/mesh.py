@@ -64,204 +64,44 @@ class Mesh:
         show: bool = True,
         **plot_kwargs,
     ):
-        """
-        Plot boundary surfaces projected onto a 2D plane.
-
-        Takes the same ``surfaces`` / ``meshgrid`` / ``colors`` interface as
-        :meth:`plot_mesh3d`, but projects each 3-D meshgrid down to two axes
-        and draws the result with :func:`matplotlib.pyplot.pcolormesh` (for
-        the filled cells) and overlaid quad edges.
-
-        Projection
-        ----------
-        For a planar surface the third coordinate is (nearly) constant.
-        ``projection`` controls which two axes are kept:
-
-        ========== ========================================
-        Value      Kept axes
-        ========== ========================================
-        ``"auto"`` Automatically drops the axis with the
-                   smallest range (i.e. the "flat" axis).
-        ``"xy"``   Keep $x$ and $y$  (drop $z$).
-        ``"xz"``   Keep $x$ and $z$  (drop $y$).
-        ``"yz"``   Keep $y$ and $z$  (drop $x$).
-        ========== ========================================
-
-        Args:
-            surfaces: Boundary name groups – same format as
-                :meth:`plot_mesh3d`.
-            meshgrid: Pre-computed ``(X, Y, Z)`` tuples.
-            colors: One colour string per group.
-            projection: Which 2-D plane to project onto.
-            figsize: Matplotlib figure size.
-            show: Call ``plt.show()`` automatically.
-            **plot_kwargs: Extra keyword arguments forwarded to every
-                ``ax.plot`` call for edges (e.g. ``linewidth``, ``linestyle``).
-
-        Returns:
-            Tuple[Figure, Axes]: The matplotlib figure and axes so callers can
-            further customise the plot.
-
-        Example::
-
-            # By boundary name
-            fig, ax = mesh.plot_mesh2d(
-                surfaces=[["top", "bottom"], "left"],
-                colors=["lightblue", "lightgreen"],
-                projection="xz",
-            )
-
-            # By raw meshgrid
-            X, Y, Z = mesh.meshgrid_from_faces("front")
-            fig, ax = mesh.plot_mesh2d(
-                meshgrid=[(X, Y, Z)],
-                colors=["salmon"],
-            )
-        """
+        from .mesh_helpers import face_to_meshgrid
         import matplotlib.pyplot as plt
-        import matplotlib.patches as mpatches
-        from matplotlib.collections import PatchCollection
+        from matplotlib.colors import ListedColormap
+        if self.dim == 2:
+            X, Y = face_to_meshgrid(self, self.t)
+            fig, ax = plt.subplots(figsize=figsize)
 
-        # -- Build ordered list of (X, Y, Z) groups ---------------------------
-        grids: List[tuple] = []
+            facecolor = plot_kwargs.pop('color', 'lightgreen')
+            edgecolor = plot_kwargs.pop('edgecolors', 'black')
+            linewidth = plot_kwargs.pop('linewidth', 0.5)
+            # Remove 3D specific kwargs if they happen to be passed
+            plot_kwargs.pop('shade', None) 
 
-        # 1. Named surface groups
-        if surfaces is not None:
-            if self.boundaries is None:
-                raise ValueError(
-                    "Cannot look up surface names: `self.boundaries` is None."
-                )
-            for entry in surfaces:
-                keys = [entry] if isinstance(entry, str) else list(entry)
-                for key in keys:
-                    if key not in self.boundaries:
-                        raise KeyError(
-                            f"'{key}' not found in boundaries. "
-                            f"Available: {list(self.boundaries.keys())}"
-                        )
-                X, Y, Z = self.meshgrid_from_faces(*keys)
-                grids.append((X, Y, Z))
+            # pcolormesh requires a color array (C) for faces. 
+            # We create an array of ones matching the face dimensions (M-1, N-1)
+            # and map it to a single color using a ListedColormap.
+            C = np.ones((np.array(X).shape[0] - 1, np.array(X).shape[1] - 1))
+            cmap = ListedColormap([facecolor])
 
-        # 2. Explicit meshgrid tuples
-        if meshgrid is not None:
-            for grid in meshgrid:
-                if len(grid) != 3:
-                    raise ValueError(
-                        "Each meshgrid entry must be a (X, Y, Z) tuple."
-                    )
-                grids.append(tuple(grid))
-
-        # 3. Fallback: plot every boundary as its own group
-        if not grids and self.boundaries:
-            for key in self.boundaries:
-                X, Y, Z = self.meshgrid_from_faces(key)
-                grids.append((X, Y, Z))
-
-        # -- Resolve colours ---------------------------------------------------
-        _DEFAULT_CYCLE = [
-            "cyan", "lightgreen", "salmon", "khaki",
-            "plum", "lightskyblue", "peachpuff", "thistle",
-        ]
-
-        if colors is not None:
-            if len(colors) != len(grids):
-                raise ValueError(
-                    f"Length of `colors` ({len(colors)}) must match the "
-                    f"number of surface groups ({len(grids)})."
-                )
-            resolved_colors = list(colors)
-        else:
-            resolved_colors = [
-                _DEFAULT_CYCLE[i % len(_DEFAULT_CYCLE)]
-                for i in range(len(grids))
-            ]
-
-        # -- Determine projection axes ----------------------------------------
-        def _detect_projection(grids: List[tuple]) -> Tuple[int, int, str, str]:
-            """Return (axis_h, axis_v, label_h, label_v) for the two kept axes."""
-            all_X = np.concatenate([np.asarray(g[0]).ravel() for g in grids])
-            all_Y = np.concatenate([np.asarray(g[1]).ravel() for g in grids])
-            all_Z = np.concatenate([np.asarray(g[2]).ravel() for g in grids])
-
-            ranges = [
-                np.ptp(all_X),  # axis 0 – X
-                np.ptp(all_Y),  # axis 1 – Y
-                np.ptp(all_Z),  # axis 2 – Z
-            ]
-            drop = int(np.argmin(ranges))
-            axes_labels = ["X", "Y", "Z"]
-            kept = [i for i in range(3) if i != drop]
-            return kept[0], kept[1], axes_labels[kept[0]], axes_labels[kept[1]]
-
-        _PROJ_MAP = {
-            "xy": (0, 1, "X", "Y"),
-            "xz": (0, 2, "X", "Z"),
-            "yz": (1, 2, "Y", "Z"),
-        }
-
-        if projection == "auto":
-            ax_h, ax_v, lbl_h, lbl_v = _detect_projection(grids)
-        elif projection in _PROJ_MAP:
-            ax_h, ax_v, lbl_h, lbl_v = _PROJ_MAP[projection]
-        else:
-            raise ValueError(
-                f"Unknown projection '{projection}'. "
-                f"Use 'auto', 'xy', 'xz', or 'yz'."
+            # Plot the filled 2D mesh 
+            ax.pcolormesh(
+                X, Y, C, 
+                cmap=cmap, 
+                edgecolors=edgecolor, 
+                linewidth=linewidth, 
+                shading='flat', # Ensures faces map directly to grid definitions
+                **plot_kwargs
             )
+            
+            # standard 2D plot configurations
+            ax.set_xlabel('X-axis')
+            ax.set_ylabel('Y-axis')
+            ax.set_aspect('equal')
+            
+            if show:
+                plt.show()
 
-        # -- Helper: extract the two kept coordinates from a grid --------------
-        def _get_uv(grid: tuple, ah: int, av: int):
-            """Return (U, V) arrays for the two kept axes."""
-            components = [np.asarray(grid[0]), np.asarray(grid[1]), np.asarray(grid[2])]
-            return components[ah], components[av]
 
-        # -- Plot defaults -----------------------------------------------------
-        default_edge_kwargs = dict(
-            linewidth=0.5,
-            linestyle="-",
-        )
-        default_edge_kwargs.update(plot_kwargs)
-
-        edge_color = default_edge_kwargs.pop("edgecolor", "black")
-        edge_color = default_edge_kwargs.pop("edgecolors", edge_color)
-
-        # -- Create figure & axes ----------------------------------------------
-        fig, ax = plt.subplots(figsize=figsize)
-
-        for (X, Y, Z), facecolor in zip(grids, resolved_colors):
-            U, V = _get_uv((X, Y, Z), ax_h, ax_v)
-            nrows, ncols = U.shape
-
-            # Build quad patches for each cell in the meshgrid
-            patches = []
-            for i in range(nrows - 1):
-                for j in range(ncols - 1):
-                    # Four corners of the quad, counter-clockwise
-                    quad = np.array([
-                        [U[i,     j],     V[i,     j]],
-                        [U[i,     j + 1], V[i,     j + 1]],
-                        [U[i + 1, j + 1], V[i + 1, j + 1]],
-                        [U[i + 1, j],     V[i + 1, j]],
-                    ])
-                    patches.append(mpatches.Polygon(quad, closed=True))
-
-            pc = PatchCollection(
-                patches,
-                facecolor=facecolor,
-                edgecolor=edge_color,
-                **default_edge_kwargs,
-            )
-            ax.add_collection(pc)
-
-        ax.set_xlabel(f"{lbl_h}-axis")
-        ax.set_ylabel(f"{lbl_v}-axis")
-        ax.set_aspect("equal")
-        ax.autoscale_view()
-
-        if show:
-            plt.show()
-
-        return fig, ax
 
 
     def plot_mesh3d(
@@ -428,6 +268,7 @@ class Mesh:
 
     def facet_from_nodes(self, nodes) -> List[List[int]]:
         if self.dim == 2:
+            # to be implemented later
             return
         if self.dim == 3:
             return self.quad_from_nodes(nodes)

@@ -2,6 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_interactions import zoom_factory
+import numpy as np
 
 class Viewer:
     """
@@ -20,7 +21,7 @@ class Viewer:
         self.ax: Axes3D = self.fig.add_subplot(projection='3d')
         self.disconnect_zoom = self.zoom_factory_3d(self.ax)
 
-    def plot_surf(self, X, Y, Z, **kwargs):
+    def plot_surf(self, X, Y, Z=None, **kwargs):
         """
         Plots a 3D surface on the viewer's axes.
         
@@ -33,6 +34,9 @@ class Viewer:
             **kwargs: Arbitrary keyword arguments to pass to `ax.plot_surface`.
                       Examples: `color`, `edgecolors`, `linewidth`, `shade`.
         """
+        if Z is None:
+            Z = np.zeros_like(X)
+
         self.ax.plot_surface(X, Y, Z, **kwargs)
 
     def set_labels(self, xlabel="X-axis", ylabel="Y-axis", zlabel="Z-axis"):
