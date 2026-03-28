@@ -331,7 +331,7 @@ class Mesh:
                 colors=["lightblue", "salmon"],
             )
         """
-        from ..viewer import Viewer
+        from .viewer import Viewer
 
         viewer = Viewer(figsize=figsize)
 
